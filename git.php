@@ -1,2 +1,2 @@
 <?php
-exec ('git pull');
+exec('git pull');
