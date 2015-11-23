@@ -3,17 +3,17 @@
 <head>
 	<meta charset="UTF-8">
 	<title>Imgur Subreddit Viewer</title>
-	<link rel="stylesheet" href="stylesheets/screen.css">
+	<link rel="stylesheet" href="dist/css/screen.css">
 	<link href='http://fonts.googleapis.com/css?family=Raleway:400,700' rel='stylesheet' type='text/css'>
-	<script src="//ajax.googleapis.com/ajax/libs/jquery/1.10.2/jquery.min.js"></script>
-	<script language="javascript" type="text/javascript" src="scripts/script.js"></script>
 </head>
-<body>
+<body id="viewr">
 	<header>
-		<form onsubmit="submitSubreddit(); return false;">
+		<form @submit="loadSubredditSubmit">
 			<div id="button-home" class="icons-home square64"></div>
-			<input id="input-subreddit" class="input-text" placeholder="Enter Subreddit" type="text">
-			<input class="button" id="submit-subreddit" type="submit" value="Show Images">
+			<input v-model="subreddit" class="input-text" placeholder="Enter Subreddit" type="text">
+
+			<button class="button" type="submit">Show Images</button>
+
 			<input id="radio-sort-time" checked='checked' type="radio" name="sort" value="time">
 			<label for="radio-sort-time">Recent</label>
 			<input id="radio-sort-top" type="radio" name="sort" value="top">
@@ -34,47 +34,58 @@
 	</header>
 
 	<div id="container">
+
 		<h3 id="message"></h3>
-		<div id="images"></div>
+
+		<div id="images">
+			<img v-for="image in images" @click="setCurrentImage(image)" :src="image.thumb" :alt="image.title">
+		</div>
+
 		<div id="button-load" class="button">Load More</div>
-		<figure class="loading">
-			<div id="loading-dot1" class="loading-dot"></div>
-			<div id="loading-dot2" class="loading-dot"></div>
-			<div id="loading-dot3" class="loading-dot"></div>
+		<figure class="loading" v-show="isRequested">
+			<div class="loading-dot"></div>
+			<div class="loading-dot"></div>
+			<div class="loading-dot"></div>
 		</figure>
-		<div id="suggestions">
-			<p data-sub="aww">Awww</p> <!-- Remove extra W -->
-			<p data-sub="cats">Cats</p>
-			<p data-sub="dogs">Dogs</p>
-			<p data-sub="puppies">Puppies</p>
-			<p data-sub="cute">Cute</p>
-			<p data-sub="redpandas">RedPandas</p>
-			<p data-sub="aww_gifs">AwwGifs</p>
-			<p data-sub="foxes">Foxes</p>
-			<p data-sub="hardcoreaww">HardcoreAww</p>
-			<p data-sub="rabbits">Rabbits</p>
-			<p data-sub="CatGifs">CatGifs</p>
-			<p data-sub="CatsStandingUp">CatsStandingUp</p>
-			<p data-sub="dogpictures">DogPictures</p>
-			<p data-sub="pics">Pics</p>
-			<p data-sub="photography">Photography</p>
-			<p data-sub="earthporn">Earth</p>
-			<p data-sub="spaceporn">Space</p>
-			<p data-sub="gifs">GIFs</p>
-			<p data-sub="hdr">HDR</p>
-			<p data-sub="AbandonedPorn">Abandoned</p>
-			<p data-sub="FuturePorn">Future</p>
-			<p data-sub="FoodPorn">Food</p>
-			<p data-sub="AnimalPorn">Animals</p>
-			<p data-sub="MapPorn">Maps</p>
-			<p data-sub="ArtPorn">Art</p>
+		<div id="suggestions" v-show="!subreddit">
+			<p @click="loadSubreddit('aww')">Awww</p> <!-- Remove extra W -->
+			<p @click="loadSubreddit('cats')">Cats</p>
+			<p @click="loadSubreddit('dogs')">Dogs</p>
+			<p @click="loadSubreddit('puppies')">Puppies</p>
+			<p @click="loadSubreddit('cute')">Cute</p>
+			<p @click="loadSubreddit('redpandas')">RedPandas</p>
+			<p @click="loadSubreddit('aww_gifs')">AwwGifs</p>
+			<p @click="loadSubreddit('foxes')">Foxes</p>
+			<p @click="loadSubreddit('hardcoreaww')">HardcoreAww</p>
+			<p @click="loadSubreddit('rabbits')">Rabbits</p>
+			<p @click="loadSubreddit('CatGifs')">CatGifs</p>
+			<p @click="loadSubreddit('CatsStandingUp')">CatsStandingUp</p>
+			<p @click="loadSubreddit('dogpictures')">DogPictures</p>
+			<p @click="loadSubreddit('pics')">Pics</p>
+			<p @click="loadSubreddit('photography')">Photography</p>
+			<p @click="loadSubreddit('earthporn')">Earth</p>
+			<p @click="loadSubreddit('spaceporn')">Space</p>
+			<p @click="loadSubreddit('gifs')">GIFs</p>
+			<p @click="loadSubreddit('hdr')">HDR</p>
+			<p @click="loadSubreddit('AbandonedPorn')">Abandoned</p>
+			<p @click="loadSubreddit('FuturePorn')">Future</p>
+			<p @click="loadSubreddit('FoodPorn')">Food</p>
+			<p @click="loadSubreddit('AnimalPorn')">Animals</p>
+			<p @click="loadSubreddit('MapPorn')">Maps</p>
+			<p @click="loadSubreddit('ArtPorn')">Art</p>
 		</div>
 	</div>
 
-	<div id="viewer">
-		<div id="viewer-control-left" class="viewer-control">previous</div>
-		<div id="viewer-image"></div>
-		<div id="viewer-control-right" class="viewer-control">Next</div>
+	<div id="viewer" v-el:image-display @click="hideImageDisplay" v-show="currentImage">
+		<div @click="changeImage(-1)" class="viewer-control">previous</div>
+		<div id="viewer-image">
+			<img :src="currentImage.display" :alt="currentImage.title">
+		</div>
+		<div @click="changeImage(1)" class="viewer-control">Next</div>
 	</div>
+
+	<script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.4/jquery.min.js"></script>
+	<script src="http://cdnjs.cloudflare.com/ajax/libs/vue/1.0.8/vue.min.js"></script>
+	<script type="text/javascript" src="dist/scripts/script.js"></script>
 </body>
 </html>

@@ -1,248 +1,205 @@
-var pageCount = 0;
-var currentSubreddit = '';
-var isRequested = false;
-var itemCount = 0;
-var viewerCurrent = 0;
-var slideshowSpeed = 3000;
-var slideshow = false;
+(function() {
 
-$(document).ready(function() {
+var imgurService = {
 
-	$('input[name=sort]').change(function() {
+	//Set auth header for imgur
+	setHeader: function(xhr) {
+	    xhr.setRequestHeader('Authorization', 'Client-ID 312eab995957c5a');
+	},
+	
+	// Build a request url
+	createUrl: function(subreddit, pageCount) {
+		var urlString = 'https://api.imgur.com/3/gallery/r/' + subreddit;
 		if ($('#radio-sort-top').is(':checked')) {
-			$('#menu-group').css('display', 'inline-block');
+		    urlString += '/top/' + $('input:radio[name=time]:checked').val();
 		} else {
-			$('#menu-group').css('display', 'none');
+		    urlString += '/time';
+		}
+		return urlString + '/' + pageCount + '.json';
+	},
+
+	// Filter returned images
+	imageFilter: function(images) {
+		var filteredImages = images.filter(function(image) {
+
+			if (image.bandwidth === 0) return false;
+
+			return image.link.indexOf('http://imgur.com/a/') === -1;
+		});
+		for (var i = 0; i < filteredImages.length; i++) {
+			var image = filteredImages[i];
+			var ext = image.link.split('.').pop().toLowerCase();
+			// Set thumb
+			var thumb = image.link;
+			if (ext === 'gif' && thumb.indexOf('h.gif') !== -1) {
+				thumb = thumb.replace('h.gif', 'b.gif');
+			} else {
+				thumb = thumb.replace(image.id, image.id + 'b');
+			}
+			image.thumb = thumb;
+			image.display = (ext === 'gif') ? image.link : image.link.replace(image.id, image.id + 'h');
 		};
-		
-	});
+		return filteredImages;
+	}
 
-	$('#button-home').click(function() {
-		location.reload();
-	});
+};
 
-	$('#button-load').click(function(){
-		if (!currentSubreddit || currentSubreddit == '') {
-			setMessage('An Error Occured');
-			return;
-		} else {
-			nextPage(true);
-		};
-	});
+var app = new Vue({
+	el: '#viewr',
+	data: {
+		page: 0,
+		subreddit: '',
+		isRequested: false,
+		images: [],
+		currentImage: false,
+		slideshowSpeed: 3000,
+		slideshow: false,
+	},
+	ready: function() {
+		var element = this.$el;
+		var _this = this;
+		$(element).keydown(function(e) {
+			//'D' or right arrow
+			if (e.which == 39 || e.which == 68) {
+			    _this.changeImage(1);
+			};
+			//'A' or left arrow
+			if (e.which == 37 || e.which == 65) {
+				_this.changeImage(-1);
+			};
+			//escape
+			if (e.which == 27) {
+			    _this.currentImage = false;
+			};
+			//Enter
+			// if (e.which == 13) {
+			//     if (!appState.slideshow) {
+			//         setTimeout(startSlideshow, appState.slideshowSpeed);
+			//     } else {
+			//         stopSlideshow();
+			//     }
+			// };
+		});
+	},
+	methods: {
 
-	$(window).scroll(function() {
-		if (isScrolledIntoView('#button-load') && currentSubreddit) {
-			nextPage();
-		};
-	});
+		// Load subreddit data into the current instance
+		loadSubreddit: function(subreddit, force) {
+			var _this = this;
+			_this.subreddit = subreddit;
+			if(_this.isRequested && !force) return;
+			_this.isRequested = true;
+			$.ajax({
+				url: imgurService.createUrl(subreddit, _this.page),
+				type: 'GET',
+				dataType: 'json',
+				beforeSend: imgurService.setHeader
+			}).done(function(data) {
+				var images = imgurService.imageFilter(data.data);
+				_this.images = _this.images.concat(images);
+			}).fail(function() {
+				console.log('Imgur get failed');
+			}).always(function() {
+				_this.isRequested = false;
+			});
+		},
+		// Submit handler for above subreddit loader
+		loadSubredditSubmit: function(e) {
+			e.preventDefault();
+			this.loadSubreddit(this.subreddit);
+			return false;
+		},
 
-	$('#images').on('click', '.item' ,function() {
-		viewerCurrent = $(this).data('index');
-		viewerLoadImage($(this).attr('src'));
-		viewerOpen();
-	});
+		// Set the current image being featured
+		setCurrentImage: function(image) {
+			var _this = this;
+			_this.currentImage = image;
+		},
 
-	$('#viewer').click(function(e) {
-		if (e.target.id == 'viewer') {
-			viewerClose();
-		};
-	});
-	$('#viewer-image').click(function() {
-		viewerNext();
-	});
-	$('#viewer-control-left').click(function() {
-		viewerPrev();
-	});
-	$('#viewer-control-right').click(function() {
-		viewerNext();
-	});
+		// Hide the image display popup
+		hideImageDisplay: function(e) {
+			if(e.target === this.$els.imageDisplay) {
+				this.currentImage = false;
+				console.log('test');
+			}
+		},
 
-	$('#viewer').keydown(function(event) {
-		//'D' or right arrow
-		if (event.which == 39 || event.which == 68) {
-			viewerNext();
-		};
-		//'A' or left arrow
-		if (event.which == 37 ||event.which == 65) {
-			viewerPrev();
-		};
-		//escape
-		if (event.which == 27) {
-			viewerClose();
-		};
-		//Enter
-		if (event.which == 13) {
-			if(!slideshow){setTimeout(startSlideshow, slideshowSpeed);}
-			else{ stopSlideshow();};
-		};
-	});
+		changeImage: function(relativeIndexChange) {
+			var newIndex = this.images.indexOf(this.currentImage) + relativeIndexChange;
+			// TODO - check if at the end of current imageDisplay
+			this.currentImage = this.images[newIndex];
+		}
 
-	$('#suggestions').on('click', 'p', function() {
-		$('#input-subreddit').val($(this).data('sub'));
-		submitSubreddit();
-		$('#suggestions').css('display', 'none');
-	});
-
-
+	}
 });
 
-//Form Actions
-function submitSubreddit(){
-	currentSubreddit = $('#input-subreddit').val();
-	$('#images').html('');
-	$('#suggestions').css('display', 'none');
-	pageCount = 0;
-	itemCount = 0;
-	viewerCurrent = 0;
-	$('#button-load').css('display', 'none');
-	requestImages(currentSubreddit);
-}
 
-//Get images from Ajax
-function requestImages(subreddit, force){
-	var fullUrl = createUrl(subreddit);
-	if (!isRequested || force) {
-		loading(true);
-		$.ajax({
-			url: fullUrl,
-			type: 'GET',
-			dataType: 'json',
-			beforeSend: setHeader
-		})
-		.done(function(data){
-			if (data.data.length < 2) {
-				setMessage('Subreddit not found')
-			} else {
-				displayImages(data);
-			};
-		})
-		.fail(function() {
-			console.log("error");
-		})
-		.always(function() {
-			console.log("complete");
-			loading(false);
-			isRequested = false;
-		});
-	};
-}
 
-//Use Ajax response
-function displayImages(json){
-	var data = json.data;
-	for (var i = 0; i < data.length; i++) {
-		var link  = data[i].link;
-		//Check link incase bad
-		var bad = "http://imgur.com/a/"
-		if (link.indexOf(bad) == 0) {
-			continue;
-		};
+    $('input[name=sort]').change(function() {
+        if ($('#radio-sort-top').is(':checked')) {
+            $('#menu-group').css('display', 'inline-block');
+        } else {
+            $('#menu-group').css('display', 'none');
+        };
 
-		//Change link to thumbnail link
-		var thumbLink = link.replace(data[i].id, data[i].id + 'b');
-		var image = "<img data-index='" + itemCount + "' class='item' src='" + thumbLink + "' >";
-		$('#images').append(image);
-		itemCount++;
-	};
-	$('#button-load').css('display', 'inline-block');
-}
+    });
 
-//Set auth header for imgur
-function setHeader(xhr) {
-xhr.setRequestHeader('Authorization', 'Client-ID 312eab995957c5a');
-//xhr.setRequestHeader('Access-Control-Allow-Origin', 'http://127.0.0.1:24681');
-}
-function setMessage(message){
-	$('#message').text(message).slideDown().delay(1*1000).slideUp();
-}
-function createUrl(subreddit){
-	var urlString = 'https://api.imgur.com/3/gallery/r/' + subreddit;
-	if ($('#radio-sort-top').is(':checked')) {
-		urlString += '/top/' + $('input:radio[name=time]:checked').val();
-	} else {
-		urlString += '/time';
-	};
-	console.log(urlString + '/' + pageCount + '.json');
-	return urlString + '/' + pageCount + '.json';
-}
-function isScrolledIntoView(elem){
-    var docViewTop = $(window).scrollTop();
-    var docViewBottom = docViewTop + $(window).height();
+    $('#button-home').click(function() {
+        location.reload();
+    });
 
-    var elemTop = $(elem).offset().top;
-    var elemBottom = elemTop + $(elem).height();
+    $('#button-load').click(function() {
+        if (!appState.currentSubreddit || appState.currentSubreddit == '') {
+            setMessage('An Error Occured');
+            return;
+        } else {
+            nextPage(true);
+        };
+    });
 
-    return ((elemBottom <= docViewBottom) && (elemTop >= docViewTop));
-}
-function nextPage(force){
-	if (!isRequested || force) {
-		pageCount++;
-		requestImages(currentSubreddit, true);
-		isRequested = true;
-	};
-}
-function viewerOpen(){
-	$('#viewer').css({
-		'display': 'block',
-		'opacity': '1'
-	});
-	$('#container').css('opacity', '0.3');
-	$("#viewer").attr("tabindex",-1).focus();
-}
-function viewerClose(){
-	$('#viewer').css({
-		'display': 'none',
-		'opacity': '0'
-	});
-	$('#container').css('opacity', '1');
-	stopSlideshow();
-}
-function viewerNext(){
-	if (viewerCurrent+1 < itemCount) {
-		viewerCurrent++;
-		viewerLoadImage();
-	} else {
-		nextPage();
-	};
-}
-function viewerPrev(){
-	if (viewerCurrent > 0) {
-		viewerCurrent--;
-	};
-	viewerLoadImage();
-}
-function viewerLoadImage(thumbnailLink){
-	var original = "";
-	if (thumbnailLink) {
-		original = thumbnailLink;
-	} else {
-		original = $('.item[data-index="'+ viewerCurrent +'"]').attr('src');
-	};
-	if (original.indexOf('.gif') != -1) {
-		$('#viewer-image').html(' <img src="' + original.replace('b.', '.')  +'" > ');
-	} else {
-		$('#viewer-image').html(' <img src="' + original.replace('b.', 'h.')  +'" > ');
-	};
-}
-function startSlideshow(){
-	slideshow = true;
-	cycleSlideshow();
-}
-function cycleSlideshow(){
-	if (slideshow) {
-		viewerNext();
-		setTimeout(cycleSlideshow, slideshowSpeed);
-	};
-}
-function stopSlideshow(){
-	slideshow = false;
-}
-function loading(visible){
-	if (visible == true) {
-		$('.loading').css('display', 'inline-block');
-		$('#button-load').css('display', 'none');
-	} else {
-		$('.loading').css('display', 'none');
-		$('#button-load').css('display', 'inline-block');
-	};	
-}
+    // $(window).scroll(function() {
+    //     if (isScrolledIntoView('#button-load') && appState.currentSubreddit) {
+    //         nextPage();
+    //     };
+    // });
+
+
+    function setMessage(message) {
+        $('#message').text(message).slideDown().delay(1 * 1000).slideUp();
+    }
+
+    function isScrolledIntoView(elem) {
+        var docViewTop = $(window).scrollTop();
+        var docViewBottom = docViewTop + $(window).height();
+
+        var elemTop = $(elem).offset().top;
+        var elemBottom = elemTop + $(elem).height();
+
+        return ((elemBottom <= docViewBottom) && (elemTop >= docViewTop));
+    }
+
+    function nextPage(force) {
+        if (!appState.isRequested || force) {
+            appState.pageCount++;
+            requestImages(appState.currentSubreddit, true);
+            appState.isRequested = true;
+        };
+    }
+
+    function startSlideshow() {
+        appState.slideshow = true;
+        cycleSlideshow();
+    }
+
+    function cycleSlideshow() {
+        if (slideshow) {
+            viewerNext();
+            setTimeout(cycleSlideshow, appState.slideshowSpeed);
+        };
+    }
+
+    function stopSlideshow() {
+        appState.slideshow = false;
+    }
+
+})();

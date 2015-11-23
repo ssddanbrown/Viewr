@@ -1,51 +1,47 @@
-// Compass imports
-@import "compass/reset";
-@import 'compass/css3';
+
 // Mixins import
+@import 'variables';
 @import 'mixins';
-// Sprites imports
-@import "compass/utilities/sprites";
-@import "icons/*.png";
-@include all-icons-sprites;
 
 $sans: 'Raleway', sans-serif;
 
-html, input{
+
+html, input {
 	font-family: $sans;
 }
-body{
+body {
 	background-color: #252525;
 }
-header{
+header {
 	overflow: hidden;
 	background-color: #252525;
 	padding: 12px;
 	color: #fff;
 }
-form{
+form {
 	display: inline-block;
 }
-input, option, select{
+input, option, select {
 	font-size: 24px;
 }
-label{
+label {
 	font-size: 24px;
 	margin-right: 8px;
 }
-select{
+select {
 	background-color: #000;
 	color: #aaa;
 	padding: 2px 8px;
 	border-radius: 5px;
 }
-h2{
+h2 {
 	font-size: 48px;
 	padding: 5px 0;
 }
-h3{
+h3 {
 	font-size: 24px;
 }
-.button{
+.button {
 	display: inline-block;
 	border: none;
 	background-color: #252525;
@@ -56,51 +52,52 @@ h3{
 	margin: 4px 16px;
 	font-weight: bold;
 	cursor: pointer;
-	&:hover{
+	&:hover {
 		background-color: #fff;
 		color: #252525;
 	}
-	&:active{
+	&:active {
 		border: 2px solid #000;
 	}
 }
-.square64{
+.square64 {
 	height: 64px;
 	width: 64px;
 	display: inline-block;
 	vertical-align: top;
 	cursor: pointer;
 }
-#container{
+#container {
 	display: block;
 	width: 100%;
 	height: auto;
 	overflow: hidden;
 	text-align: center;
-	@include transition-property(opacity);
-	@include transition-duration(200ms);
+	transition-property: opacity;
+	transition-duration: 200ms;
 }
-.item{
-	display: inline-block;
+#images img {
+	display: block;
+	float: left;
 	height: 160px;
 	width: 160px;
 	overflow: hidden;
 	margin: 4px;
 	cursor: pointer;
 }
-.input-text{
+.input-text {
 	border-radius: 5px;
 	padding: 8px 12px;
 	margin: 12px;
 }
-#menu-group{
+#menu-group {
 	display: none;
 	border: 1px solid #fff;
 	border-radius: 5px;
 	padding: 8px 16px;
 	margin-left: 12px;
 }
-#message{
+#message {
 	text-align: center;
 	margin-top: 18px;
 	color: #fff;
@@ -108,13 +105,13 @@ h3{
 	vertical-align: middle;
 	display: none;
 }
-#button-load{
+#button-load {
 	display: none;
 	margin: 24px;
 }
 
 //Image Viewer
-#viewer{
+#viewer {
 	position: fixed;
 	top: 0;
 	left: 0;
@@ -122,16 +119,15 @@ h3{
 	height: 100%;
 	max-height: 100%;
 	text-align: center;
-	display: none;
 	outline: 0;
-	&:before{
+	&:before {
 		content: '';
 		display: inline-block;
 		height: 100%;
 		vertical-align: middle;
 		margin-right: -0.25em;
 	}
-	img{
+	img {
 		display: inline-block;
 		max-height: 100%;
 		max-width: 100%;
@@ -139,14 +135,14 @@ h3{
 		z-index: 10;
 	}
 }
-#viewer-image{
+#viewer-image {
 	max-width: 90%;
 }
-#viewer-image, .viewer-control{
+#viewer-image, .viewer-control {
 	display: inline-block;
 	vertical-align: middle;
 }
-.viewer-control{
+.viewer-control {
 	width: 5%;
 	position: relative;
 	cursor: pointer;
@@ -154,23 +150,25 @@ h3{
 	text-align: center;
 	z-index: 10000;
 }
-#suggestions{
+#suggestions {
 	text-align: left;
 	padding: 12px 24px;
 	width: 120%;
+	margin-left: -10%;
+	text-align: center;
 	p {
-		font-size: 140px;
+		font-size: 120px;
 		display: inline-block;
-		margin: 12px 32px 12px 0;
+		margin: $-xs $-s;
+		line-height: 1;
 		cursor: pointer;
 		color: #777;
 	}
 }
-.loading{
-	display: none;
+.loading {
 	margin: 24px;
 }
-.loading-dot{
+.loading-dot {
 	position: relative;
 	height: 10px;
 	width: 10px;
@@ -178,29 +176,16 @@ h3{
 	margin: 4px;
 	background-color: #fff;
 	display: inline-block;
+	@include animation(fadeIn 2s linear infinite);
+	&:nth-child(2n) {
+		animation-delay: 0.6s;
+	}
+	&:nth-child(3n) {
+		animation-delay: 1.4s;
+	}
 }
-#loading-dot1{
-	@include animation(fadeIn1 2s linear infinite);
-}
-#loading-dot2{
-	@include animation(fadeIn2 2s linear infinite);
-}
-#loading-dot3{
-	@include animation(fadeIn3 2s linear infinite);
-}
-@include keyframes(fadeIn1) {
+@include keyframes(fadeIn) {
 	0% { opacity: .1;}
 	50% {opacity: .9;}
 	100% {opacity: .1;}
-}
-@include keyframes(fadeIn2) {
-	0% { opacity: .5;}
-	25% { opacity: .1;}
-	75% {opacity: .9;}
-	100% {opacity: .5;}
-}
-@include keyframes(fadeIn3) {
-	0% { opacity: .9;}
-	50% { opacity: .1;}
-	100% {opacity: .9;}
 }
