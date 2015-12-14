@@ -3,31 +3,42 @@
 @import 'variables';
 @import 'mixins';
 
-$sans: 'Raleway', sans-serif;
-
 
 html, input {
-	font-family: $sans;
+	font-family: $text;
 }
 body {
 	background-color: #252525;
+	padding-top: 60px + $-m;
+	margin: 0;
 }
+
 header {
 	overflow: hidden;
-	background-color: #252525;
-	padding: 12px;
+	background-color: rgba(#000, 0.8);
+	padding: $-s;
 	color: #fff;
+	position: fixed;
+	width: 100%;
+	top: 0;
 }
+
 form {
 	display: inline-block;
 }
+
 input, option, select {
-	font-size: 24px;
+	font-size: 16px;
+	background-color: transparent;
+	color: #EEE;
+	border: 1px solid #FFF;
 }
+
 label {
-	font-size: 24px;
-	margin-right: 8px;
+	font-size: 16px;
+	margin: 0 $-xxs;
 }
+
 select {
 	background-color: #000;
 	color: #aaa;
@@ -44,14 +55,17 @@ h3 {
 .button {
 	display: inline-block;
 	border: none;
-	background-color: #252525;
+	background-color: transparent;
 	color: #fff;
 	border: 1px solid #fff;
-	border-radius: 5px;
-	padding: 8px 16px;
+	border-radius: 0px;
 	margin: 4px 16px;
-	font-weight: bold;
+	font-weight: 600;
 	cursor: pointer;
+	padding: 8px $-s;
+	margin: $-xxs;
+	font-size: 14px;
+	text-transform: uppercase;
 	&:hover {
 		background-color: #fff;
 		color: #252525;
@@ -76,6 +90,7 @@ h3 {
 	transition-property: opacity;
 	transition-duration: 200ms;
 }
+
 #images img {
 	display: block;
 	float: left;
@@ -85,13 +100,14 @@ h3 {
 	margin: 4px;
 	cursor: pointer;
 }
+
 .input-text {
-	border-radius: 5px;
-	padding: 8px 12px;
-	margin: 12px;
+	padding: $-xs $-xs;
+	margin: $-xxs;
 }
+
 #menu-group {
-	display: none;
+	display: inline-block;
 	border: 1px solid #fff;
 	border-radius: 5px;
 	padding: 8px 16px;

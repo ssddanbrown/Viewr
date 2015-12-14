@@ -4,30 +4,34 @@
 	<meta charset="UTF-8">
 	<title>Imgur Subreddit Viewer</title>
 	<link rel="stylesheet" href="dist/css/screen.css">
-	<link href='http://fonts.googleapis.com/css?family=Raleway:400,700' rel='stylesheet' type='text/css'>
+	<link href='https://fonts.googleapis.com/css?family=Roboto:400,500italic,700,500,400italic,300italic,300,100italic,100,700italic,900,900italic|Material+Icons' rel='stylesheet' type='text/css'>
 </head>
 <body id="viewr">
 	<header>
 		<form @submit="loadSubredditSubmit">
-			<div id="button-home" class="icons-home square64"></div>
-			<input v-model="subreddit" class="input-text" placeholder="Enter Subreddit" type="text">
+			<i class="material-icons" @click="loadSubreddit('', true)">home</i>
+			<input v-model="subredditInput" class="input-text" placeholder="Enter Subreddit" type="text">
 
 			<button class="button" type="submit">Show Images</button>
 
-			<input id="radio-sort-time" checked='checked' type="radio" name="sort" value="time">
+			<input id="radio-sort-time" checked='checked' type="radio" v-model="sort" value="time">
 			<label for="radio-sort-time">Recent</label>
-			<input id="radio-sort-top" type="radio" name="sort" value="top">
+			<input id="radio-sort-top" type="radio" v-model="sort" value="top">
 			<label for="radio-sort-top">Top</label>
-			<div id="menu-group">
-				<input type="radio" name="time" id="radio-time-day" value="day">
+			<div id="menu-group" v-show="sort == 'top'">
+				<input type="radio" v-model="time" value="day">
 				<label for="radio-time-day">This Day</label>
-				<input type="radio" name="time" checked='checked' id="radio-time-week" value="week">
+
+				<input type="radio" v-model="time" value="week">
 				<label for="radio-time-week">This Week</label>
-				<input type="radio" name="time" id="radio-time-month" value="month">
+
+				<input type="radio" v-model="time" value="month">
 				<label for="radio-time-month">This Month</label>
-				<input type="radio" name="time" id="radio-time-year" value="year">
+
+				<input type="radio" v-model="time" value="year">
 				<label for="radio-time-year">This Year</label>
-				<input type="radio" name="time" id="radio-time-all" value="all">
+
+				<input type="radio" v-model="time" value="all">
 				<label for="radio-time-all">All Time</label>		
 			</div>
 		</form>
@@ -37,16 +41,18 @@
 
 		<h3 id="message"></h3>
 
-		<div id="images">
+		<div id="images" v-show="subreddit">
 			<img v-for="image in images" @click="setCurrentImage(image)" :src="image.thumb" :alt="image.title">
 		</div>
 
-		<div id="button-load" class="button">Load More</div>
+		<div id="button-load" class="button" @click="nextPage()" v-show="!isRequested">Load More</div>
+
 		<figure class="loading" v-show="isRequested">
 			<div class="loading-dot"></div>
 			<div class="loading-dot"></div>
 			<div class="loading-dot"></div>
 		</figure>
+
 		<div id="suggestions" v-show="!subreddit">
 			<p @click="loadSubreddit('aww')">Awww</p> <!-- Remove extra W -->
 			<p @click="loadSubreddit('cats')">Cats</p>
@@ -79,13 +85,14 @@
 	<div id="viewer" v-el:image-display @click="hideImageDisplay" v-show="currentImage">
 		<div @click="changeImage(-1)" class="viewer-control">previous</div>
 		<div id="viewer-image">
-			<img :src="currentImage.display" :alt="currentImage.title">
+			<img v-if="!currentImage.isGif || !currentImage.webm" :src="currentImage.display" :alt="currentImage.title">
+			<video v-if="currentImage.isGif && currentImage.webm" :src="currentImage.webm" preload="auto" autoplay="autoplay" muted="muted" loop="loop" webkit-playsinline=""></video>
 		</div>
 		<div @click="changeImage(1)" class="viewer-control">Next</div>
 	</div>
 
 	<script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.4/jquery.min.js"></script>
-	<script src="http://cdnjs.cloudflare.com/ajax/libs/vue/1.0.8/vue.min.js"></script>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/vue/1.0.8/vue.min.js"></script>
 	<script type="text/javascript" src="dist/scripts/script.js"></script>
 </body>
 </html>
