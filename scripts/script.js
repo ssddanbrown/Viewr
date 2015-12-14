@@ -2,11 +2,12 @@
 
 
     function isScrolledIntoView(elem) {
+    	var $elem = $(elem);
         var docViewTop = $(window).scrollTop();
         var docViewBottom = docViewTop + $(window).height();
 
-        var elemTop = $(elem).offset().top;
-        var elemBottom = elemTop + $(elem).height();
+        var elemTop = $elem.offset().top;
+        var elemBottom = elemTop + $elem.height();
 
         return ((elemBottom <= docViewBottom) && (elemTop >= docViewTop));
     }
@@ -75,6 +76,7 @@
             var element = this.$el;
             var _this = this;
             $(element).keydown(function(e) {
+            	if(!_this.currentImage) return;
                 //'D' or right arrow
                 if (e.which == 39 || e.which == 68) {
                     _this.changeImage(1);

@@ -45,7 +45,7 @@
 			<img v-for="image in images" @click="setCurrentImage(image)" :src="image.thumb" :alt="image.title">
 		</div>
 
-		<div id="button-load" class="button" @click="nextPage()" v-show="!isRequested">Load More</div>
+		<div id="button-load" class="button" @click="nextPage()" v-show="!isRequested && subreddit !== ''">Load More</div>
 
 		<figure class="loading" v-show="isRequested">
 			<div class="loading-dot"></div>

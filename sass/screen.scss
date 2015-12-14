@@ -101,6 +101,11 @@ h3 {
 	cursor: pointer;
 }
 
+#images:after {
+	display: block;
+	clear: both;
+	content: '';
+}
 .input-text {
 	padding: $-xs $-xs;
 	margin: $-xxs;
@@ -122,7 +127,6 @@ h3 {
 	display: none;
 }
 #button-load {
-	display: none;
 	margin: 24px;
 }
 
