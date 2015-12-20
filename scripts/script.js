@@ -59,7 +59,7 @@
     };
 
     var app = new Vue({
-        
+
         el: '#viewr',
 
         data: {
@@ -100,11 +100,18 @@
                 }
             });
 
+            // 'Infinate scroll', Auto-loads next page
             $(window).scroll((e) => {
                 if (isScrolledIntoView('#button-load') && this.subreddit !== '') {
                     this.nextPage();
                 };
             });
+
+            // Autoload subreddit if in hash
+            if (window.location.hash && window.location.hash !== '') {
+                var sub  = window.location.hash.substring(1);
+                this.loadSubreddit(sub);
+            };
         },
 
         methods: {
