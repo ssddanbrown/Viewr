@@ -9,7 +9,7 @@
 <body id="viewr">
 	<header>
 		<form @submit="loadSubredditSubmit">
-			<i class="material-icons" @click="loadSubreddit('', true)">home</i>
+			<i class="material-icons pointer" @click="loadSubreddit('', true)">home</i>
 			<input v-model="subredditInput" class="input-text" placeholder="Enter Subreddit" type="text">
 
 			<button class="button" type="submit">Show Images</button>
@@ -32,7 +32,7 @@
 				<label for="radio-time-year">This Year</label>
 
 				<input type="radio" v-model="time" value="all">
-				<label for="radio-time-all">All Time</label>		
+				<label for="radio-time-all">All Time</label>
 			</div>
 		</form>
 	</header>

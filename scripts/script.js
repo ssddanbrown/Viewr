@@ -1,8 +1,8 @@
 (function() {
-
+    "use strict";
 
     function isScrolledIntoView(elem) {
-    	var $elem = $(elem);
+        var $elem = $(elem);
         var docViewTop = $(window).scrollTop();
         var docViewBottom = docViewTop + $(window).height();
 
@@ -59,7 +59,9 @@
     };
 
     var app = new Vue({
+        
         el: '#viewr',
+
         data: {
             page: 0,
             subreddit: '',
@@ -72,79 +74,78 @@
             sort: 'time',
             time: 'all'
         },
+
         ready: function() {
-            var element = this.$el;
-            var _this = this;
-            $(element).keydown(function(e) {
-            	if(!_this.currentImage) return;
+            $(this.$el).keydown((e) => {
+                if (!this.currentImage) return;
                 //'D' or right arrow
                 if (e.which == 39 || e.which == 68) {
-                    _this.changeImage(1);
-                };
+                    this.changeImage(1);
+                }
                 //'A' or left arrow
                 if (e.which == 37 || e.which == 65) {
-                    _this.changeImage(-1);
-                };
+                    this.changeImage(-1);
+                }
                 //escape
                 if (e.which == 27) {
-                    _this.currentImage = false;
-                };
+                    this.currentImage = false;
+                }
                 //Enter
                 if (e.which == 13) {
-                    if (!_this.slideshow) {
-                        _this.startSlideshow();
+                    if (!this.slideshow) {
+                        this.startSlideshow();
                     } else {
-                        _this.stopSlideshow();
+                        this.stopSlideshow();
                     }
-                };
+                }
             });
 
-            $(window).scroll(function() {
-                if (isScrolledIntoView('#button-load') && _this.subreddit !== '') {
-                    _this.nextPage();
+            $(window).scroll((e) => {
+                if (isScrolledIntoView('#button-load') && this.subreddit !== '') {
+                    this.nextPage();
                 };
             });
         },
+
         methods: {
 
             // Load subreddit data into the current instance
             loadSubreddit: function(subreddit, force) {
-                var _this = this;
-                _this.page = 0;
-                _this.subreddit = subreddit;
-                _this.subredditInput = subreddit;
-                if (_this.isRequested && !force) return;
+                this.page = 0;
+                this.subreddit = subreddit;
+                this.subredditInput = subreddit;
+                if (this.isRequested && !force) return;
                 if (subreddit === '') return;
-                _this.getImages(subreddit, _this.page, _this.sort, _this.time, function(images) {
-                    _this.images = images;
+                this.getImages(subreddit, this.page, this.sort, this.time)
+                    .then((images) => {
+                        this.images = images;
+                    });
+            },
+
+            getImages: function(subreddit, page, sort, time) {
+                this.isRequested = true;
+                return new Promise((resolve, reject) => {
+                    $.ajax({
+                        url: imgurService.createUrl(subreddit, page, sort, time),
+                        type: 'GET',
+                        dataType: 'json',
+                        beforeSend: imgurService.setHeader
+                    }).done((data) => {
+                        var images = imgurService.imageFilter(data.data);
+                        resolve(images);
+                    }).fail(() => {
+                        reject(Error('Imgur request failed'));
+                    }).always(() => {
+                        this.isRequested = false;
+                    });
                 });
             },
 
-            getImages: function(subreddit, page, sort, time, callback) {
-                var _this = this;
-                _this.isRequested = true;
-                $.ajax({
-                    url: imgurService.createUrl(subreddit, page, sort, time),
-                    type: 'GET',
-                    dataType: 'json',
-                    beforeSend: imgurService.setHeader
-                }).done(function(data) {
-                    var images = imgurService.imageFilter(data.data);
-                    callback(images);
-                }).fail(function() {
-                    console.log('Imgur get failed');
-                }).always(function() {
-                    _this.isRequested = false;
-                });
-            },
-
-            nextPage: function(callback) {
-                var _this = this;
-                if (_this.isRequested) return;
-                _this.page = _this.page + 1;
-                _this.getImages(_this.subreddit, _this.page, _this.sort, _this.time, function(images) {
-                    _this.images = _this.images.concat(images);
-                    if (callback) callback();
+            nextPage: function() {
+                this.page = this.page + 1;
+                var imagesPromise = this.getImages(this.subreddit, this.page, this.sort, this.time);
+                return imagesPromise.then((images) => {
+                    this.images = this.images.concat(images);
                 });
             },
 
@@ -158,8 +159,7 @@
 
             // Set the current image being featured
             setCurrentImage: function(image) {
-                var _this = this;
-                _this.currentImage = image;
+                this.currentImage = image;
             },
 
             // Hide the image display popup
@@ -170,14 +170,14 @@
             },
 
             changeImage: function(relativeIndexChange) {
-                var _this = this;
-                var newIndex = _this.images.indexOf(_this.currentImage) + relativeIndexChange;
-                if (newIndex === _this.images.length) {
-                    _this.nextPage(function() {
-                        _this.currentImage = this.images[newIndex];
+                if (this.isRequested) return;
+                var newIndex = this.images.indexOf(this.currentImage) + relativeIndexChange;
+                if (newIndex === this.images.length) {
+                    this.nextPage().then(() => {
+                        this.currentImage = this.images[newIndex];
                     });
                 } else {
-                    _this.currentImage = _this.images[newIndex];
+                    this.currentImage = this.images[newIndex];
                 }
             },
 
