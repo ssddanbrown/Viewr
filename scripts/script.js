@@ -1,5 +1,4 @@
 (function() {
-    "use strict";
 
     function isScrolledIntoView(elemId) {
         var elem = document.getElementById(elemId);
@@ -175,10 +174,9 @@
 
             // Hide the image display popup
             hideImageDisplay: function(e) {
-                if (e.target === this.$els.imageDisplay) {
-                    this.currentImage = false;
-                    this.slideshow = false;
-                }
+                if (e.target.tagName === 'VIDEO') return;
+                this.currentImage = false;
+                this.slideshow = false;
             },
 
             changeImage: function(relativeIndexChange) {

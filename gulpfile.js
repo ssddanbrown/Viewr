@@ -1,5 +1,6 @@
 var gulp = require('gulp');
-var livereload = require('gulp-livereload');
+var babel = require("gulp-babel");
+var browserSync = require('browser-sync').create();
 
 // CSS and javascript
 var sass = require('gulp-sass'),
@@ -8,6 +9,14 @@ var sass = require('gulp-sass'),
 	uglify = require('gulp-uglify'),
 	sourcemaps = require('gulp-sourcemaps');
 
+gulp.task('browser-sync', function() {
+    browserSync.init({
+        server: {
+            baseDir: "./"
+        },
+        files: ["*.html"]
+    });
+});
 
 // CSS dev Task, Adds sourcemaps and does not minify.
 gulp.task('css-dev', function() {
@@ -17,7 +26,7 @@ gulp.task('css-dev', function() {
 		.pipe(autoprefixer('last 2 version', 'ie 8', 'ios 5', 'android 3'))
 		.pipe(sourcemaps.write())
 		.pipe(gulp.dest('dist/css'))
-		.pipe(livereload());
+		.pipe(browserSync.stream());
 });
 
 // CSS Task, Compile sass, prefix and minify
@@ -32,21 +41,22 @@ gulp.task('css', function() {
 // Scripts task, Minify
 gulp.task('scripts', function() {
 	return gulp.src('scripts/*.js')
+    	.pipe(babel())
 		.pipe(uglify())
-		.pipe(gulp.dest('dist/scripts'))
-		.pipe(livereload());
+		.pipe(gulp.dest('dist/scripts'));
 });
 
 gulp.task('scripts-dev', function() {
 	return gulp.src('scripts/*.js')
-		//.pipe(uglify())
+	    .pipe(sourcemaps.init())
+    	.pipe(babel())
+    	.pipe(sourcemaps.write("."))
 		.pipe(gulp.dest('dist/scripts'))
-		.pipe(livereload());
+		.pipe(browserSync.stream());
 });
 
-gulp.task('watch', ['css-dev', 'scripts-dev'], function() {
-	livereload.listen();
-	gulp.watch(['template/**', 'scripts/**', 'stylesheet/**', '*.html']).on('change', livereload.changed);
+gulp.task('watch', ['css-dev', 'scripts-dev', 'browser-sync'], function() {
+	gulp.watch(['template/**', 'scripts/**', 'stylesheet/**', '*.html']);
 	gulp.watch('sass/*.scss', ['css-dev']);
 	gulp.watch('scripts/*.js', ['scripts-dev']);
 });

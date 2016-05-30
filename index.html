@@ -1,38 +1,65 @@
 <!doctype html>
 <html lang="en">
 <head>
+
 	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width">
+
 	<title>Imgur Subreddit Viewer</title>
 	<link rel="stylesheet" href="dist/css/screen.css">
-	<link href='https://fonts.googleapis.com/css?family=Roboto:400,500italic,700,500,400italic,300italic,300,100italic,100,700italic,900,900italic|Material+Icons' rel='stylesheet' type='text/css'>
+	<link href='https://fonts.googleapis.com/css?family=Roboto:400,500italic,700,500,400italic,300italic,300,100italic,100,700italic,900,900italic' rel='stylesheet' type='text/css'>
 </head>
+
 <body id="viewr">
 	<header>
 		<form @submit="loadSubredditSubmit">
-			<i class="material-icons pointer" @click="loadSubreddit('', true)">home</i>
+			<span class="logo" @click="loadSubreddit('', true)">
+				Viewr
+			</span>
 			<input v-model="subredditInput" class="input-text" placeholder="Enter Subreddit" type="text">
+
+			&nbsp;&nbsp;&nbsp;
 
 			<button class="button" type="submit">Show Images</button>
 
-			<input id="radio-sort-time" checked='checked' type="radio" v-model="sort" value="time">
-			<label for="radio-sort-time">Recent</label>
-			<input id="radio-sort-top" type="radio" v-model="sort" value="top">
-			<label for="radio-sort-top">Top</label>
+			&nbsp;&nbsp;&nbsp;
+
+			<div class="fancy-radio">
+				<input id="radio-sort-time" checked='checked' type="radio" v-model="sort" value="time">
+				<label for="radio-sort-time">Recent</label>
+			</div>
+
+			<div class="fancy-radio">
+				<input id="radio-sort-top" type="radio" v-model="sort" value="top">
+				<label for="radio-sort-top">Top</label>
+			</div>
+
 			<div id="menu-group" v-show="sort == 'top'">
-				<input type="radio" v-model="time" value="day">
-				<label for="radio-time-day">This Day</label>
+				
+				<div class="fancy-radio">
+					<input type="radio" id="radio-time-day" v-model="time" value="day">
+					<label for="radio-time-day">This Day</label>
+				</div>
 
-				<input type="radio" v-model="time" value="week">
-				<label for="radio-time-week">This Week</label>
+				<div class="fancy-radio">
+					<input type="radio" id="radio-time-week" v-model="time" value="week">
+					<label for="radio-time-week">This Week</label>
+				</div>
 
-				<input type="radio" v-model="time" value="month">
-				<label for="radio-time-month">This Month</label>
+				<div class="fancy-radio">
+					<input type="radio" id="radio-time-month" v-model="time" value="month">
+					<label for="radio-time-month">This Month</label>
+				</div>
 
-				<input type="radio" v-model="time" value="year">
-				<label for="radio-time-year">This Year</label>
+				<div class="fancy-radio">
+					<input type="radio" id="radio-time-year" v-model="time" value="year">
+					<label for="radio-time-year">This Year</label>
+				</div>
 
-				<input type="radio" v-model="time" value="all">
-				<label for="radio-time-all">All Time</label>
+				<div class="fancy-radio">
+					<input type="radio" id="radio-time-all" v-model="time" value="all">
+					<label for="radio-time-all">All Time</label>
+				</div>
 			</div>
 		</form>
 	</header>
@@ -42,7 +69,7 @@
 		<h3 id="message"></h3>
 
 		<div id="images" v-show="subreddit">
-			<img v-for="image in images" @click="setCurrentImage(image)" :src="image.thumb" :alt="image.title">
+			<img draggable="false" v-for="image in images" @click="setCurrentImage(image)" :src="image.thumb" :alt="image.title">
 		</div>
 
 		<div id="button-load" class="button" @click="nextPage()" v-show="!isRequested && subreddit !== ''">Load More</div>
@@ -82,16 +109,28 @@
 		</div>
 	</div>
 
-	<div id="viewer" v-el:image-display @click="hideImageDisplay" v-show="currentImage">
-		<div @click="changeImage(-1)" class="viewer-control">previous</div>
-		<div id="viewer-image">
-			<img v-if="!currentImage.isGif || !currentImage.webm" :src="currentImage.display" :alt="currentImage.title">
-			<video v-if="currentImage.isGif && currentImage.webm" :src="currentImage.webm" preload="auto" autoplay="autoplay" muted="muted" loop="loop" webkit-playsinline=""></video>
+	<div id="viewer" v-show="currentImage">
+		<div @click="changeImage(-1)" class="viewer-control">
+			<svg fill="#000000" height="24" viewBox="0 0 24 24" width="24" xmlns="http://www.w3.org/2000/svg">
+			    <path d="M15.41 16.09l-4.58-4.59 4.58-4.59L14 5.5l-6 6 6 6z"/>
+			    <path d="M0-.5h24v24H0z" fill="none"/>
+			</svg>
 		</div>
-		<div @click="changeImage(1)" class="viewer-control">Next</div>
+		<div id="viewer-image" @click="hideImageDisplay">
+			<div class="content-wrap">
+				<img v-if="!currentImage.isGif || !currentImage.mp4" :src="currentImage.display" :alt="currentImage.title">
+				<video v-if="currentImage.isGif && currentImage.mp4" :src="currentImage.mp4" preload="auto" autoplay="autoplay" controls muted="muted" loop="loop" webkit-playsinline=""></video>
+			</div>
+		</div>
+		<div @click="changeImage(1)" class="viewer-control">
+			<svg fill="#000000" height="24" viewBox="0 0 24 24" width="24" xmlns="http://www.w3.org/2000/svg">
+			    <path d="M8.59 16.34l4.58-4.59-4.58-4.59L10 5.75l6 6-6 6z"/>
+			    <path d="M0-.25h24v24H0z" fill="none"/>
+			</svg>
+		</div>
 	</div>
 
-	<script src="https://cdnjs.cloudflare.com/ajax/libs/vue/1.0.13/vue.min.js"></script>
+	<script src="libs/vue.min.js"></script>
 	<script type="text/javascript" src="dist/scripts/script.js"></script>
 </body>
 </html>

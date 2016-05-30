@@ -3,10 +3,14 @@
 @import 'variables';
 @import 'mixins';
 
+* {
+	box-sizing: border-box;
+}
 
 html, input {
 	font-family: $text;
 }
+
 body {
 	background-color: #252525;
 	padding-top: 60px + $-m;
@@ -17,10 +21,18 @@ header {
 	overflow: hidden;
 	background-color: rgba(#000, 0.8);
 	padding: $-s;
-	color: #fff;
+	color: #EEE;
 	position: fixed;
 	width: 100%;
 	top: 0;
+	background-color: $primary;
+	svg {
+		fill: #EEE;
+	}
+	.logo {
+		cursor: pointer;
+		padding: 0 $-m;
+	}
 }
 
 form {
@@ -31,7 +43,12 @@ input, option, select {
 	font-size: 16px;
 	background-color: transparent;
 	color: #EEE;
-	border: 1px solid #FFF;
+	border: 0;
+	border-bottom: 1px solid #FFF;
+	border-radius: 0;
+	&:focus, &:active {
+		outline: 0;
+	}
 }
 
 label {
@@ -53,6 +70,23 @@ h3 {
 	font-size: 24px;
 }
 
+.fancy-radio {
+	display: inline-block;
+	margin: 0 $-xs;
+	input { display: none; }
+	label {
+		cursor: pointer;
+		padding-bottom: 2px;
+		border-bottom: 1px solid #EEE;
+		color: #B2DFDB;
+		border-bottom-color: #B2DFDB;
+	}
+	input:checked + label {
+		color: #FFF;
+		border-bottom-color: #FFF;
+	}
+}
+
 .pointer {
 	cursor: pointer;
 }
@@ -65,7 +99,7 @@ h3 {
 	border: 1px solid #fff;
 	border-radius: 0px;
 	margin: 4px 16px;
-	font-weight: 600;
+	font-weight: 400;
 	cursor: pointer;
 	padding: 8px $-s;
 	margin: $-xxs;
@@ -79,13 +113,7 @@ h3 {
 		border: 2px solid #000;
 	}
 }
-.square64 {
-	height: 64px;
-	width: 64px;
-	display: inline-block;
-	vertical-align: top;
-	cursor: pointer;
-}
+
 #container {
 	display: block;
 	width: 100%;
@@ -96,21 +124,23 @@ h3 {
 	transition-duration: 200ms;
 }
 
+#images {
+	display: flex;
+	flex-flow: row wrap;
+	justify-content: space-around;
+}
+
 #images img {
 	display: block;
-	float: left;
-	height: 160px;
-	width: 160px;
 	overflow: hidden;
 	margin: 4px;
 	cursor: pointer;
+	width: 160px;
+	flex: 1;
+	flex-basis: 160px;
+	user-select:none;
 }
 
-#images:after {
-	display: block;
-	clear: both;
-	content: '';
-}
 .input-text {
 	padding: $-xs $-xs;
 	margin: $-xxs;
@@ -145,28 +175,31 @@ h3 {
 	max-height: 100%;
 	text-align: center;
 	outline: 0;
-	&:before {
-		content: '';
-		display: inline-block;
-		height: 100%;
-		vertical-align: middle;
-		margin-right: -0.25em;
-	}
-	img {
-		display: inline-block;
-		max-height: 100%;
-		max-width: 100%;
-		box-shadow: 0 0 1000px 150px #000;
-		z-index: 10;
-	}
+	display: flex;
+  align-items: stretch;
+  background-color: rgba(0, 0, 0, 0.8);
 }
+
 #viewer-image {
-	max-width: 90%;
+	flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+	img, video {
+		max-width: 100%;
+		max-height: 94vh;
+		z-index: 10;
+		flex: 1;
+		user-select:none;
+	}
+	.content-wrap {
+		flex: 1;
+		justify-content: center;
+		text-align: center;
+		align-items: center;
+	}
 }
-#viewer-image, .viewer-control {
-	display: inline-block;
-	vertical-align: middle;
-}
+
 .viewer-control {
 	width: 5%;
 	position: relative;
@@ -174,7 +207,20 @@ h3 {
 	color: #fff;
 	text-align: center;
 	z-index: 10000;
+	width: 100px;
+	background-color: #222;
+	display: flex;
+  align-items: center;
+  justify-content: center;
+  align-self:stretch;
+  user-select:none;
+	svg {
+		fill: #666;
+		flex: 1;
+		height: 50px;
+	}
 }
+
 #suggestions {
 	text-align: left;
 	padding: 12px 24px;
