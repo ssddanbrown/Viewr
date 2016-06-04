@@ -1,5 +1,42 @@
+
 (function() {
 
+    // List of domains that are approved to show in listing.
+    const approvedContentDomains = [
+        '//i.imgur.com',
+        '//imgur.com',
+        '//gfycat.com',
+        '//i.redd.it',
+        '//i.reddituploads.com'
+    ];
+
+    const imageExtensions = [
+        'jpg', 'jpeg', 'png', 'gif'
+    ];
+
+    const videoExtensions = [
+        'gifv', 'mp4'
+    ];
+
+    const validExtensions = imageExtensions.concat(videoExtensions);
+
+    // const imgur = {
+    //     headers: {
+    //         'Authorization': 'Client-ID 312eab995957c5a'
+    //     },
+    //     getAlbumInfo(url) {
+    //         let idRegex = /\/([a-zA-Z0-9]{5,6})($|\?|\/)/gm;
+    //         let regexResult = idRegex.exec(url);
+    //         let id = regexResult[1];
+    //         return fetch(`https://api.imgur.com/3/album/${id}`, {
+    //             headers: this.headers
+    //         }).then(resp => {
+    //             return resp.json();
+    //         });
+    //     }
+    // };
+
+    // Check if element is scrolled into the viewport.
     function isScrolledIntoView(elemId) {
         var elem = document.getElementById(elemId);
         var docViewBottom = window.innerHeight;
@@ -8,63 +45,107 @@
         return ((elemBoundingRect.bottom <= window.innerHeight) && (elemBoundingRect.top >= 0));
     }
 
-    function createImgurUrl(subreddit, pageCount, sort, time) {
-        var urlString = 'https://api.imgur.com/3/gallery/r/' + subreddit;
-        urlString += (sort === 'top') ? '/top/' + time : '/time';
-        return urlString + '/' + pageCount + '.json';
+    // Create reddit JSON request url
+    function createRedditUrl(subreddit, after, sort, time) {
+        let listing = (sort === 'top') ? `top` : 'hot';
+        let afterParam = (after === false) ? '' : `&after=t3_${after}`;
+        return `https://www.reddit.com/r/${subreddit}/${listing}/.json?limit=50&t=${time}&count=100${afterParam}`;
     }
 
-    function filterImgurImages(images) {
-
-        var filteredImages = images.filter((image) => {
-            // Filter out missing images
-            if (image.bandwidth === 0) return false;
-            // Filter out galleries
-            return image.link.indexOf('//imgur.com/a/') === -1;
-        });
-
-        filteredImages.forEach((image) => {
-            var isGif = image.type === 'image/gif';
-            // Set thumb
-            var thumb = image.link;
-            if (isGif && thumb.indexOf('h.gif') !== -1) {
-                thumb = thumb.replace('h.gif', 'b.gif');
-            } else {
-                thumb = thumb.replace(image.id, image.id + 'b');
+    // Check reddit post url domain
+    function checkPostDomain(url) {
+        for (let i = approvedContentDomains.length - 1; i >= 0; i--) {
+            let domain = approvedContentDomains[i]
+            if (url.indexOf(domain) !== -1) {
+                return true;
             }
-            image.thumb = thumb;
-            // Set thumbnail
-            image.display = image.link.replace(image.id, image.id + 'h')
-            image.isGif = isGif;
-        });
-
-        return filteredImages;
+        }
+        return false;
     }
 
-    function makeImgurRequest(subreddit, page, sort, time) {
-        return new Promise((resolve, reject) => {
-            var request = new XMLHttpRequest();
-            var url = createImgurUrl(subreddit, page, sort, time);
-            request.open('GET', url, true);
-            request.setRequestHeader('Authorization', 'Client-ID 312eab995957c5a');
+    // Filter reddit posts and set custom properties for easier display
+    function filterRedditPosts(posts) {
 
-            request.onload = () => {
-                if (request.status >= 200 && request.status < 400) {
-                    // Success!
-                    var data = JSON.parse(request.response);
-                    var images = filterImgurImages(data.data);
-                    resolve(images);
-                } else {
-                    reject(Error('Imgur request failed'));
-                }
-            };
+        // posts.forEach(post => {
+        //     console.log(post.data.url);
+        //     console.log(post.data.media);
+        // }); 
+        
 
-            request.onerror = () => {
-                reject(Error('Imgur request failed'));
-            };
+        // Filter out posts from non-known domains
+        // Also remove non-direct media for now
+        let filteredPosts = posts.filter((post) => {
+            let url = post.data.url;
 
-            request.send();
+            if (url.indexOf('//gfycat.com') !== -1) return true;
+
+            if (!checkPostDomain(post.data.url)) return false;
+            return true;
+
         });
+        
+
+        filteredPosts.forEach(post => {
+            let link = post.data.url;
+            let extension = link.split('.').pop().toLowerCase();
+
+
+            // Handle imgur gifv
+            if (extension === 'gifv') {
+                post.type = 'video';
+                post.media = link.replace('gifv', 'mp4');
+            }
+
+            // Handle images
+            else if (imageExtensions.indexOf(extension) !== -1 || link.indexOf('//i.reddituploads.com') !== -1) {
+                post.type = 'image';
+                post.media = link;
+            }
+
+            // Handle videos
+            else if (videoExtensions.indexOf(extension) !== -1) {
+                post.type = 'video';
+                post.media = link;
+            }
+
+            // Handle imgur galleries
+            // if (post.media && link.indexOf('imgur.com/a/') !== -1) {
+            //     post.type = 'imgur-album';
+            //     post.media = post.data.thumbnail;
+            // }
+
+            // Handle gfycats 
+            // <iframe src='https://gfycat.com/ifr/DapperImpossibleAfricanharrierhawk' 
+            else if (link.indexOf('//gfycat.com/') !== -1) {
+                post.type = 'iframe';
+                post.media = link.replace('//gfycat.com/', '//gfycat.com/ifr/');
+            } else {
+                post.delete=true;
+            }
+
+            post.title = post.data.title;
+            post.thumb = post.data.thumbnail; 
+            if (post.thumb.indexOf('http') !== 0) {
+                post.thumb = false;
+            }
+        });
+
+        filteredPosts = filteredPosts.filter(x => {return x.delete !== true;});
+
+        console.log(`Recieved ${posts.length} posts, Used ${filteredPosts.length}`);
+        let links = posts.filter(x => {return filteredPosts.indexOf(x) < 0}).map((x) => {return x.data.url});
+        console.log('Links not used:', links);
+
+        return filteredPosts;
+    }
+
+    function makeRedditRequest(subreddit, after, sort, time) {
+        var url = createRedditUrl(subreddit, after, sort, time);
+        return fetch(url).then(resp => {
+            return resp.json();
+        }).then(data => {
+            return filterRedditPosts(data.data.children);
+        }).catch(console.log.bind(console));
     }
 
 
@@ -77,29 +158,30 @@
             subreddit: '',
             subredditInput: '',
             isRequested: false,
-            images: [],
-            currentImage: false,
+            posts: [],
+            currentPost: false,
             slideshowSpeed: 3000,
             slideshow: false,
             sort: 'time',
-            time: 'all'
+            time: 'all',
+            windowWidth: 0
         },
 
         ready: function() {
             // Listen to keypresses
             this.$el.addEventListener('keydown', (event) => {
-                if (!this.currentImage) return;
+                if (!this.currentPost) return;
                 //'D' or right arrow
                 if (event.which == 39 || event.which == 68) {
-                    this.changeImage(1);
+                    this.changePost(1);
                 }
                 //'A' or left arrow
                 if (event.which == 37 || event.which == 65) {
-                    this.changeImage(-1);
+                    this.changePost(-1);
                 }
                 //escape
                 if (event.which == 27) {
-                    this.currentImage = false;
+                    this.currentPost = false;
                 }
                 //Enter
                 if (event.which == 13) {
@@ -111,12 +193,17 @@
                 }
             });
 
-            // 'Infinate scroll', Auto-loads next page
+            // 'Infinite scroll', Auto-loads next page
             window.addEventListener('scroll', (event) => {
                 if (isScrolledIntoView('button-load') && this.subreddit !== '') {
                     this.nextPage();
                 };
             });
+
+            this.windowWidth = window.innerWidth - 200;
+            window.addEventListener('resize', event => {
+                this.windowWidth = window.innerWidth - 200;
+            }) 
 
             // Autoload subreddit if in hash
             if (window.location.hash && window.location.hash !== '') {
@@ -134,27 +221,29 @@
                 this.subredditInput = subreddit;
                 if (this.isRequested && !force) return;
                 if (subreddit === '') return;
-                this.getImages(subreddit, this.page, this.sort, this.time)
-                    .then((images) => {
-                        this.images = images;
+                this.getPosts(subreddit, this.page, this.sort, this.time)
+                    .then((posts) => {
+                        this.posts = posts;
                         this.isRequested = false;
                     }, () => {
                         this.isRequested = false;
                     });
             },
 
-            getImages: function(subreddit, page, sort, time) {
+            getPosts: function(subreddit, page, sort, time) {
                 this.isRequested = true;
-                return makeImgurRequest(subreddit, page, sort, time);
+                let after = (page === 0) ? false : this.posts[this.posts.length-1].data.id;
+                let posts = makeRedditRequest(subreddit, after, sort, time);
+                return posts;
             },
 
             nextPage: function() {
                 if (this.isRequested) return false;
                 this.page = this.page + 1;
                 this.isRequested = true;
-                var imagesPromise = this.getImages(this.subreddit, this.page, this.sort, this.time);
-                return imagesPromise.then((images) => {
-                    this.images = this.images.concat(images);
+                var postsPromise = this.getPosts(this.subreddit, this.page, this.sort, this.time);
+                return postsPromise.then((posts) => {
+                    this.posts = this.posts.concat(posts);
                     this.isRequested = false;
                 }, () => {this.isRequested = false;});
             },
@@ -163,31 +252,31 @@
             loadSubredditSubmit: function(e) {
                 e.preventDefault();
                 this.loadSubreddit(this.subredditInput);
-                this.images = [];
+                this.posts = [];
                 return false;
             },
 
-            // Set the current image being featured
-            setCurrentImage: function(image) {
-                this.currentImage = image;
+            // Set the current post being featured
+            setCurrentPost: function(post) {
+                this.currentPost = post;
             },
 
-            // Hide the image display popup
-            hideImageDisplay: function(e) {
-                if (e.target.tagName === 'VIDEO') return;
-                this.currentImage = false;
+            // Hide the post display popup
+            hidePostDisplay: function(e) {
+                if (e.target.tagName === 'VIDEO' || e.target.tagName === 'A') return;
+                this.currentPost = false;
                 this.slideshow = false;
             },
 
-            changeImage: function(relativeIndexChange) {
+            changePost: function(relativeIndexChange) {
                 if (this.isRequested) return;
-                var newIndex = this.images.indexOf(this.currentImage) + relativeIndexChange;
-                if (newIndex === this.images.length) {
+                var newIndex = this.posts.indexOf(this.currentPost) + relativeIndexChange;
+                if (newIndex === this.posts.length) {
                     this.nextPage().then(() => {
-                        this.currentImage = this.images[newIndex];
+                        this.currentPost = this.posts[newIndex];
                     });
                 } else {
-                    this.currentImage = this.images[newIndex];
+                    this.currentPost = this.posts[newIndex];
                 }
             },
 
@@ -198,7 +287,7 @@
 
             cycleSlideshow: function() {
                 if (this.slideshow) {
-                    this.changeImage(1);
+                    this.changePost(1);
                     setTimeout(this.cycleSlideshow, this.slideshowSpeed)
                 }
             },

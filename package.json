@@ -20,5 +20,9 @@
     "gulp-sass": "^2.3.0",
     "gulp-sourcemaps": "^1.6.0",
     "gulp-uglify": "^1.4.2"
+  },
+  "dependencies": {
+    "vue": "^1.0.24",
+    "whatwg-fetch": "^1.0.0"
   }
 }
