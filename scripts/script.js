@@ -49,7 +49,7 @@
     function createRedditUrl(subreddit, after, sort, time) {
         let listing = (sort === 'top') ? `top` : 'hot';
         let afterParam = (after === false) ? '' : `&after=t3_${after}`;
-        return `https://www.reddit.com/r/${subreddit}/${listing}/.json?limit=50&t=${time}&count=100${afterParam}`;
+        return `https://www.reddit.com/r/${subreddit}/${listing}/.json?limit=100&t=${time}&count=100${afterParam}`;
     }
 
     // Check reddit post url domain
