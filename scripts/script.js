@@ -129,7 +129,10 @@
             }
 
             post.title = post.data.title;
-            post.thumb = post.data.thumbnail; 
+            post.thumb = post.data.thumbnail.replace(/^http:/, 'https:');
+            if (post.media && post.media.indexOf('http:') === 0) {
+                post.media = post.media.replace('http:', 'https:');
+            }
             if (post.thumb.indexOf('http') !== 0) {
                 post.thumb = false;
             }
