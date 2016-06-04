@@ -97,9 +97,14 @@
             }
 
             // Handle images
-            else if (imageExtensions.indexOf(extension) !== -1 || link.indexOf('//i.reddituploads.com') !== -1) {
+            else if (imageExtensions.indexOf(extension) !== -1) {
                 post.type = 'image';
                 post.media = link;
+            }
+
+            else if (link.indexOf('//i.reddituploads.com') !== -1) {
+                post.type = 'image';
+                post.media = link.replace(/&amp;/g, '&');
             }
 
             // Handle videos
