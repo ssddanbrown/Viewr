@@ -6,54 +6,23 @@
 * {
 	box-sizing: border-box;
 }
-
+html {
+	overflow-y: hidden;
+	height: 100%;
+}
 html, input {
 	font-family: $text;
 }
 
 body {
 	background-color: #252525;
-	padding-top: 60px + $-m;
 	margin: 0;
-}
-
-header {
+	display: flex;
+	align-items: stretch;
+	flex-direction: column;
+	height: 100%;
+	max-height: 100%;
 	overflow: hidden;
-	background-color: rgba(#000, 0.8);
-	padding: $-s;
-	color: #EEE;
-	position: fixed;
-	width: 100%;
-	top: 0;
-	background-color: $primary;
-	svg {
-		fill: #EEE;
-	}
-	.logo {
-		cursor: pointer;
-		padding: 0 $-m;
-	}
-}
-
-form {
-	display: inline-block;
-}
-
-input, option, select {
-	font-size: 16px;
-	background-color: transparent;
-	color: #EEE;
-	border: 0;
-	border-bottom: 1px solid #FFF;
-	border-radius: 0;
-	&:focus, &:active {
-		outline: 0;
-	}
-}
-
-label {
-	font-size: 16px;
-	margin: 0 $-xxs;
 }
 
 select {
@@ -70,11 +39,26 @@ h3 {
 	font-size: 24px;
 }
 
+#app {
+	display: flex;
+	flex-direction: column;
+	flex: 1;
+	height: 100%;
+	max-height: 100%;
+	overflow: hidden;
+}
+
+#content {
+	display: flex;
+	flex-direction: column;
+}
+
 .fancy-radio {
 	display: inline-block;
 	margin: 0 $-xs;
 	input { display: none; }
 	label {
+		display: inline-block;
 		cursor: pointer;
 		padding-bottom: 2px;
 		border-bottom: 1px solid #EEE;
@@ -115,10 +99,9 @@ h3 {
 }
 
 #container {
-	display: block;
-	width: 100%;
-	height: auto;
-	overflow: hidden;
+	flex: 1;
+	flex-grow: 1;
+	overflow-y: scroll;
 	text-align: center;
 	transition-property: opacity;
 	transition-duration: 200ms;
@@ -148,13 +131,7 @@ h3 {
 	margin: $-xxs;
 }
 
-#menu-group {
-	display: inline-block;
-	border: 1px solid #fff;
-	border-radius: 5px;
-	padding: 8px 16px;
-	margin-left: 12px;
-}
+
 #message {
 	text-align: center;
 	margin-top: 18px;
@@ -250,14 +227,17 @@ h3 {
 
 #suggestions {
 	text-align: left;
-	padding: 12px 24px;
-	width: 120%;
 	margin-left: -10%;
 	text-align: center;
+	display: flex;
+	flex-flow: row wrap;
+	max-width: 800px;
+	margin: 0 auto;
 	p {
-		font-size: 120px;
-		display: inline-block;
-		margin: $-xs $-s;
+		flex: 1;
+		flex-basis: 25%;
+		font-size: 20px;
+		display: block;
 		line-height: 1;
 		cursor: pointer;
 		color: #777;
