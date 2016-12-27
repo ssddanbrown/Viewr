@@ -1,145 +1,15 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
-<head>
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width">
 
-	<meta charset="UTF-8">
-	<meta name="viewport" content="width=device-width">
-
-	<title>Imgur Subreddit Viewer</title>
-	<link rel="stylesheet" href="dist/css/screen.css">
-	<link href='https://fonts.googleapis.com/css?family=Roboto:400,500italic,700,500,400italic,300italic,300,100italic,100,700italic,900,900italic' rel='stylesheet' type='text/css'>
-</head>
-
-<body id="viewr">
-	<header>
-		<form @submit="loadSubredditSubmit">
-			<span class="logo" @click="loadSubreddit('', true)">
-				Viewr
-			</span>
-			<input v-model="subredditInput" class="input-text" placeholder="Enter Subreddit" type="text">
-
-			&nbsp;&nbsp;&nbsp;
-
-			<button class="button" type="submit">Show Posts</button>
-
-			&nbsp;&nbsp;&nbsp;
-
-			<div class="fancy-radio">
-				<input id="radio-sort-time" checked='checked' type="radio" v-model="sort" value="time">
-				<label for="radio-sort-time">Recent</label>
-			</div>
-
-			<div class="fancy-radio">
-				<input id="radio-sort-top" type="radio" v-model="sort" value="top">
-				<label for="radio-sort-top">Top</label>
-			</div>
-
-			<div id="menu-group" v-show="sort == 'top'">
-				
-				<div class="fancy-radio">
-					<input type="radio" id="radio-time-day" v-model="time" value="day">
-					<label for="radio-time-day">This Day</label>
-				</div>
-
-				<div class="fancy-radio">
-					<input type="radio" id="radio-time-week" v-model="time" value="week">
-					<label for="radio-time-week">This Week</label>
-				</div>
-
-				<div class="fancy-radio">
-					<input type="radio" id="radio-time-month" v-model="time" value="month">
-					<label for="radio-time-month">This Month</label>
-				</div>
-
-				<div class="fancy-radio">
-					<input type="radio" id="radio-time-year" v-model="time" value="year">
-					<label for="radio-time-year">This Year</label>
-				</div>
-
-				<div class="fancy-radio">
-					<input type="radio" id="radio-time-all" v-model="time" value="all">
-					<label for="radio-time-all">All Time</label>
-				</div>
-			</div>
-		</form>
-	</header>
-
-	<div id="container">
-
-		<h3 id="message"></h3>
-
-		<div id="posts" v-show="subreddit">
-			<div draggable="false" v-for="post in posts" @click="setCurrentPost(post)" class="post-item" :style="{backgroundImage: 'url(' + post.thumb + ')'}"></div>
-		</div>
-
-		<div id="button-load" class="button" @click="nextPage()" v-show="!isRequested && subreddit !== ''">Load More</div>
-
-		<figure class="loading" v-show="isRequested">
-			<div class="loading-dot"></div>
-			<div class="loading-dot"></div>
-			<div class="loading-dot"></div>
-		</figure>
-
-		<div id="suggestions" v-show="!subreddit">
-			<p @click="loadSubreddit('aww')">Awww</p> <!-- Remove extra W -->
-			<p @click="loadSubreddit('cats')">Cats</p>
-			<p @click="loadSubreddit('dogs')">Dogs</p>
-			<p @click="loadSubreddit('puppies')">Puppies</p>
-			<p @click="loadSubreddit('cute')">Cute</p>
-			<p @click="loadSubreddit('redpandas')">RedPandas</p>
-			<p @click="loadSubreddit('aww_gifs')">AwwGifs</p>
-			<p @click="loadSubreddit('foxes')">Foxes</p>
-			<p @click="loadSubreddit('hardcoreaww')">HardcoreAww</p>
-			<p @click="loadSubreddit('rabbits')">Rabbits</p>
-			<p @click="loadSubreddit('CatGifs')">CatGifs</p>
-			<p @click="loadSubreddit('CatsStandingUp')">CatsStandingUp</p>
-			<p @click="loadSubreddit('dogpictures')">DogPictures</p>
-			<p @click="loadSubreddit('pics')">Pics</p>
-			<p @click="loadSubreddit('photography')">Photography</p>
-			<p @click="loadSubreddit('earthporn')">Earth</p>
-			<p @click="loadSubreddit('spaceporn')">Space</p>
-			<p @click="loadSubreddit('gifs')">GIFs</p>
-			<p @click="loadSubreddit('hdr')">HDR</p>
-			<p @click="loadSubreddit('AbandonedPorn')">Abandoned</p>
-			<p @click="loadSubreddit('FuturePorn')">Future</p>
-			<p @click="loadSubreddit('FoodPorn')">Food</p>
-			<p @click="loadSubreddit('AnimalPorn')">Animals</p>
-			<p @click="loadSubreddit('MapPorn')">Maps</p>
-			<p @click="loadSubreddit('ArtPorn')">Art</p>
-		</div>
-	</div>
-
-	<div id="viewer" v-show="currentPost">
-		<div @click="changePost(-1)" class="viewer-control">
-			<svg fill="#000000" height="24" viewBox="0 0 24 24" width="24" xmlns="http://www.w3.org/2000/svg">
-			    <path d="M15.41 16.09l-4.58-4.59 4.58-4.59L14 5.5l-6 6 6 6z"/>
-			    <path d="M0-.5h24v24H0z" fill="none"/>
-			</svg>
-		</div>
-		<div id="viewer-post" @click="hidePostDisplay">
-			<div class="content-wrap">
-				<div>
-					<img v-if="currentPost.type === 'image'" :src="currentPost.media" :alt="currentPost.title">
-					<video v-if="currentPost.type === 'video'" :src="currentPost.media" preload="auto" autoplay="autoplay" controls muted="muted" loop="loop" webkit-playsinline=""></video>
-					<iframe v-if="currentPost.type === 'iframe'" :style="{width: windowWidth+'px', height: (windowWidth*0.7) + 'px'}" :src="currentPost.media" frameborder="0"></iframe>
-				</div>
-			</div>
-			<div class="content-bar">
-				<a :href="currentPost.data.url" target="_href">Direct Link</a>
-				<a href="https://reddit.com{{currentPost.data.permalink}}" target="_href">Reddit Permalink</a>
-				<span @click="hidePostDisplay" target="_href">Close</span>
-			</div>
-		</div>
-		<div @click="changePost(1)" class="viewer-control">
-			<svg fill="#000000" height="24" viewBox="0 0 24 24" width="24" xmlns="http://www.w3.org/2000/svg">
-			    <path d="M8.59 16.34l4.58-4.59-4.58-4.59L10 5.75l6 6-6 6z"/>
-			    <path d="M0-.25h24v24H0z" fill="none"/>
-			</svg>
-		</div>
-	</div>
-
-	<script src="libs/fetch.js"></script>
-	<script src="libs/vue.min.js"></script>
-	<script type="text/javascript" src="dist/scripts/script.js"></script>
-</body>
+    <title>Imgur Subreddit Viewer</title>
+    <link href='https://fonts.googleapis.com/css?family=Roboto:400,500italic,700,500,400italic,300italic,300,100italic,100,700italic,900,900italic' rel='stylesheet' type='text/css'>
+    <link rel="stylesheet" href="dist/build.css">
+  </head>
+  <body>
+    <div id="app"></div>
+    <script src="dist/build.js"></script>
+  </body>
 </html>
