@@ -291,7 +291,6 @@ header .button {
 }
 
 .viewer-control {
-	width: 5%;
 	position: relative;
 	cursor: pointer;
 	color: #fff;
@@ -308,6 +307,11 @@ header .button {
 		fill: #666;
 		flex: 1;
 		height: 50px;
+	}
+}
+@media screen and (max-width: 1000px){
+	.viewer-control {
+		width: 80px;
 	}
 }
 

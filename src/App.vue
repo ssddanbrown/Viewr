@@ -10,7 +10,7 @@
                 <fancy-radio v-model="sort" new-value="top">Top</fancy-radio>
             </div>
 
-            <button class="button" type="submit">Show Posts</button>
+            <button class="button" type="button" v-on:click="loadSubredditSubmit">Show Posts</button>
 
         </header>
 
@@ -34,11 +34,7 @@
 
             <div id="button-load" class="button" @click="nextPage()" v-show="!isRequested && subreddit !== ''">Load More</div>
 
-            <figure class="loading" v-show="isRequested">
-                <div class="loading-dot"></div>
-                <div class="loading-dot"></div>
-                <div class="loading-dot"></div>
-            </figure>
+            <loading v-show="isRequested"/>
 
             <div id="suggestions" v-show="!subreddit">
                 <p @click="loadSubreddit('aww')">Aww</p>
@@ -250,10 +246,11 @@ function makeRedditRequest(subreddit, after, sort, time) {
 }
 
 import fancyRadio from "./components/fancy-radio.vue";
+import loading from "./components/loading.vue";
 
 export default {
     name: 'app',
-    components: {fancyRadio},
+    components: {fancyRadio, loading},
     data: function() {
         return {
           page: 0,
@@ -320,6 +317,7 @@ export default {
         // Load subreddit data into the current instance
         loadSubreddit(subreddit, force) {
             this.page = 0;
+            if (this.subreddit !== subreddit) this.posts = [];
             this.subreddit = subreddit;
             this.subredditInput = subreddit;
             if (this.isRequested && !force) return;
@@ -413,7 +411,7 @@ export default {
     },
     computed: {
         isMobile() {
-            return window.innerWidth < 900;
+            return window.innerWidth < 760;
         }
     }
 }
