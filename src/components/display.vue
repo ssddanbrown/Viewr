@@ -9,9 +9,11 @@
         <div id="viewer-post" @click="close">
             <div class="content-wrap">
                 <div>
-                    <img v-if="post.type === 'image'" :src="post.media" :alt="post.title">
-                    <video v-if="post.type === 'video'" :src="post.media" preload="auto" autoplay="autoplay" controls muted="muted" loop="loop" webkit-playsinline=""></video>
+                    <swipe-image v-if="post.type === 'image'"
+                                 @next="nextPost"
+                                 :src="post.media" :alt="post.title"></swipe-image>
                     <iframe v-if="post.type === 'iframe'" :style="{width: windowWidth+'px', height: (windowWidth*0.7) + 'px'}" :src="post.media" frameborder="0"></iframe>
+                    <video v-if="post.type === 'video'" :src="post.media" preload="auto" autoplay="autoplay" controls muted="muted" loop="loop" webkit-playsinline=""></video>
                     <div v-if="post.type === 'html'" ref="content" v-html="post.media"></div>
                 </div>
             </div>
@@ -42,7 +44,11 @@
     </div>
 </template>
 <script>
+
+    import swipeImage from "./swipe-image.vue";
+
 export default {
+    components: { swipeImage },
     props: {
         post: {
             required: true,
@@ -70,25 +76,23 @@ export default {
     methods: {
 
         keyDown(event) {
+            const keyCode = Number(event.which);
+
             //'D' or right arrow
-            if (event.which == 39 || event.which == 68) {
+            if (keyCode === 39 || keyCode === 68) {
                 this.nextPost();
             }
             //'A' or left arrow
-            if (event.which == 37 || event.which == 65) {
+            if (keyCode === 37 || keyCode === 65) {
                 this.prevPost();
             }
             //escape
-            if (event.which == 27) {
+            if (keyCode === 27) {
                 this.close();
             }
             //Enter
-            if (event.which == 13) {
-                if (!this.slideshow) {
-                    this.startSlideshow();
-                } else {
-                    this.stopSlideshow();
-                }
+            if (keyCode === 13) {
+                this.toggleSlideshow()
             }
         },
 
@@ -115,6 +119,14 @@ export default {
             if (this.slideshow) {
                 this.nextPost();
                 setTimeout(this.cycleSlideshow, this.slideshowSpeed)
+            }
+        },
+
+        toggleSlideshow() {
+            if (!this.slideshow) {
+                this.startSlideshow();
+            } else {
+                this.stopSlideshow();
             }
         },
 
