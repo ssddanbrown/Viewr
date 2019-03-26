@@ -5,19 +5,20 @@
   "author": "Dan Brown <hi@danb.me>",
   "private": true,
   "scripts": {
-    "dev": "parcel index.html",
+    "dev": "parcel serve index.html",
+    "build": "parcel build index.html --public-url ./",
     "deploy": "parcel build index.html --public-url ./ && rsync -avz --exclude --delete ./dist/ sandcat:/var/www/danb.me/viewr"
   },
   "dependencies": {
-    "axios": "^0.15.3",
-    "vue": "^2.5.16",
-    "vue-hot-reload-api": "^2.3.0"
+    "axios": "^0.18.0",
+    "parcel-bundler": "^1.12.3",
+    "vue": "^2.6.10",
+    "vue-hot-reload-api": "^2.3.3"
   },
   "devDependencies": {
-    "@vue/component-compiler-utils": "^1.3.1",
-    "babel-core": "^6.26.3",
-    "babel-preset-env": "^1.7.0",
-    "node-sass": "^4.9.0",
-    "vue-template-compiler": "^2.5.16"
-  }
+    "@vue/component-compiler-utils": "^2.6.0",
+    "sass": "^1.17.3",
+    "vue-template-compiler": "^2.6.10"
+  },
+  "browserslist": "last 1 Chrome version"
 }

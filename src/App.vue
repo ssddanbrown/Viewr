@@ -51,16 +51,14 @@
 </template>
 
 <script>
+    import Reddit from "./reddit-provider";
 
+    import fancyRadio from "./components/fancy-radio.vue";
+    import loading from "./components/loading.vue";
+    import suggestions from "./components/suggestions.vue";
+    import display from "./components/display.vue";
 
-import Reddit from "./reddit-provider";
-
-import fancyRadio from "./components/fancy-radio.vue";
-import loading from "./components/loading.vue";
-import suggestions from "./components/suggestions.vue";
-import display from "./components/display.vue";
-
-export default {
+    export default {
     name: 'app',
     components: {fancyRadio, loading, suggestions, display},
     data: function() {
@@ -89,21 +87,27 @@ export default {
         // Load subreddit data into the current instance
         loadSubreddit(subreddit, force) {
             this.page = 0;
-            if (this.subreddit !== subreddit) this.posts = [];
+            if (this.subreddit !== subreddit) {
+                this.posts = [];
+            }
+
             this.subreddit = subreddit;
             this.subredditInput = subreddit;
+
             if (this.isRequested && !force) return;
             if (subreddit === '') return;
+
             this.getPosts(subreddit).then(posts => {
-                    this.posts = posts;
-                    this.isRequested = false;
-            }).catch(err => {this.isRequested = false;});
+                this.posts = posts;
+            }).catch(console.error).then(() => {
+                this.isRequested = false;
+            });
         },
 
-        getPosts(subreddit) {
+        async getPosts(subreddit) {
             this.isRequested = true;
-            let after = (this.page === 0) ? false : this.posts[this.posts.length-1].data.id;
-            return Reddit.fetch(subreddit, after, this.sort, this.time);
+            const after = (this.page === 0) ? false : this.posts[this.posts.length-1].data.id;
+            return await Reddit.fetch(subreddit, after, this.sort, this.time);
         },
 
         nextPage() {

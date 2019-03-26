@@ -1,5 +1,3 @@
-import axios from "axios";
-
 
 // List of domains that are approved to show in listing.
 const approvedContentDomains = [
@@ -18,11 +16,10 @@ const videoExtensions = [
     'gifv', 'mp4'
 ];
 
-
 // Create reddit JSON request url
 function createUrl(subreddit, after, sort, time) {
-    let listing = (sort === 'top') ? `top` : 'hot';
-    let afterParam = (after === false) ? '' : `&after=t3_${after}`;
+    const listing = (sort === 'top') ? 'top' : 'hot';
+    const afterParam = (after === false) ? '' : `&after=t3_${after}`;
     return `https://www.reddit.com/r/${subreddit}/${listing}/.json?limit=100&t=${time}&count=100${afterParam}`;
 }
 
@@ -35,9 +32,9 @@ function checkPostDomain(url) {
 }
 
 function setPostTypeAndMedia(post) {
-    let link = post.data.url;
-    let extension = link.split('.').pop().toLowerCase();
-    let imgurGalleryMatch = link.match('imgur\.com\/(a|gallery)\/([a-zA-Z1-9]{4,6})$');
+    const link = post.data.url;
+    const extension = link.split('.').pop().toLowerCase();
+    const imgurGalleryMatch = link.match('imgur\.com\/(a|gallery)\/([a-zA-Z1-9]{4,6})$');
 
     // Handle imgur gifv
     if (extension === 'gifv') {
@@ -91,7 +88,7 @@ function filterPosts(posts) {
 
     // Filter out posts from non-known domains
     // Also remove non-direct media for now
-    let filteredPosts = posts.filter(post => checkPostDomain(post.data.url));
+    const filteredPosts = posts.filter(post => checkPostDomain(post.data.url));
 
     for (let post of filteredPosts) {
         setPostTypeAndMedia(post);
@@ -106,18 +103,23 @@ function filterPosts(posts) {
         }
     }
 
-    filteredPosts = filteredPosts.filter(x => (x.toDelete !== true));
-
-    console.log(`Received ${posts.length} posts, Used ${filteredPosts.length}`);
-    let links = posts.filter(x => (filteredPosts.indexOf(x) < 0)).map(x => x.data.url);
-    console.log('Links not used:', links);
-
-    return filteredPosts;
+    return filteredPosts.filter(x => x.toDelete !== true);
 }
 
-function fetch(subreddit, after, sort, time) {
-    let url = createUrl(subreddit, after, sort, time);
-    return axios(url).then(resp => filterPosts(resp.data.data.children)).catch(console.log);
+/**
+ * Fetch data from Reddit and return an array of posts.
+ * @param  {String} subreddit
+ * @param  {String} after
+ * @param  {String} sort
+ * @param  {String} time
+ * @return {Array}    
+ */
+async function fetch(subreddit, after, sort, time) {
+    const url = createUrl(subreddit, after, sort, time);
+    const resp = await window.fetch(url);
+    const data = await resp.json();
+
+    return filterPosts(data.data.children);
 }
 
 export default {
