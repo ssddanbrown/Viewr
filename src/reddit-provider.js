@@ -1,4 +1,6 @@
 
+import PostFormatters from "./post-formatters";
+
 // List of domains that are approved to show in listing.
 const approvedContentDomains = [
     '//i.imgur.com',
@@ -8,13 +10,6 @@ const approvedContentDomains = [
     '//i.reddituploads.com'
 ];
 
-const imageExtensions = [
-    'jpg', 'jpeg', 'png', 'gif'
-];
-
-const videoExtensions = [
-    'gifv', 'mp4'
-];
 
 // Create reddit JSON request url
 function createUrl(subreddit, after, sort, time) {
@@ -34,53 +29,15 @@ function checkPostDomain(url) {
 function setPostTypeAndMedia(post) {
     const link = post.data.url;
     const extension = link.split('.').pop().toLowerCase();
-    const imgurGalleryMatch = link.match('imgur\.com\/(a|gallery)\/([a-zA-Z1-9]{4,6})$');
-
-    // Handle imgur gifv
-    if (extension === 'gifv') {
-        post.type = 'video';
-        post.media = link.replace('gifv', 'mp4');
+  
+    for (const {match, format} of Object.values(PostFormatters)) {
+        if (match(link, extension)) {
+            format(post, link, extension);
+            return;
+        }
     }
 
-    // Handle images
-    else if (imageExtensions.indexOf(extension) !== -1) {
-        post.type = 'image';
-        post.media = link;
-    }
-
-    else if (link.indexOf('//i.reddituploads.com') !== -1) {
-        post.type = 'image';
-        post.media = link.replace(/&amp;/g, '&');
-    }
-
-    // Handle videos
-    else if (videoExtensions.indexOf(extension) !== -1) {
-        post.type = 'video';
-        post.media = link;
-    }
-
-    // Handle imgur page links
-    else if (link.match(/imgur\.com\/[a-zA-Z1-9]{7}$/)) {
-        post.type = 'image';
-        post.media = `${link}.jpg`;
-    }
-
-    // Handle imgur galleries
-    else if (imgurGalleryMatch && imgurGalleryMatch.length > 2) {
-        let id = imgurGalleryMatch[2];
-        post.type = 'html';
-        post.media = `<blockquote class="imgur-embed-pub" lang="en" data-id="a/${id}"></blockquote>`;
-        post.scripts = ["https://s.imgur.com/min/embed.js"]
-    }
-
-    // Handle gfycats
-    // <iframe src='https://gfycat.com/ifr/DapperImpossibleAfricanharrierhawk'
-    else if (link.indexOf('//gfycat.com/') !== -1) {
-        post.type = 'iframe';
-        post.media = link.replace('//gfycat.com/', '//gfycat.com/ifr/');
-    } else {
-        post.toDelete = true;
-    }
+    post.toDelete = true;
 }
 
 // Filter reddit posts and set custom properties for easier display

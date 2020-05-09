@@ -1,33 +1,60 @@
 <template>
-    <div id="suggestions">
-        <p @click="select('aww')">Aww</p>
-        <p @click="select('cats')">Cats</p>
-        <p @click="select('puppies')">Puppies</p>
-        <p @click="select('cute')">Cute</p>
-        <p @click="select('redpandas')">RedPandas</p>
-        <p @click="select('aww_gifs')">AwwGifs</p>
-        <p @click="select('foxes')">Foxes</p>
-        <p @click="select('hardcoreaww')">HardcoreAww</p>
-        <p @click="select('rabbits')">Rabbits</p>
-        <p @click="select('CatGifs')">CatGifs</p>
-        <p @click="select('CatsStandingUp')">CatsStandingUp</p>
-        <p @click="select('dogpictures')">DogPictures</p>
-        <p @click="select('pics')">Pics</p>
-        <p @click="select('photography')">Photography</p>
-        <p @click="select('earthporn')">Earth</p>
-        <p @click="select('spaceporn')">Space</p>
-        <p @click="select('gifs')">GIFs</p>
-        <p @click="select('hdr')">HDR</p>
-        <p @click="select('AbandonedPorn')">Abandoned</p>
-        <p @click="select('FuturePorn')">Future</p>
-        <p @click="select('FoodPorn')">Food</p>
-        <p @click="select('AnimalPorn')">Animals</p>
-        <p @click="select('MapPorn')">Maps</p>
-        <p @click="select('ArtPorn')">Art</p>
+    <div>
+
+        <div v-if="history.size > 0">
+            <h2>History</h2>
+            <div class="suggestions">
+                <p v-for="sub in history" :key="sub" @click="select(sub)">{{ sub }}</p>
+            </div>
+        </div>
+
+        <h2>Suggestions</h2>
+        <div class="suggestions">
+            <p v-for="(label, sub) in suggestions" :key="sub" @click="select(sub)">{{ label }}</p>
+        </div>
     </div>
 </template>
 <script>
+
+import * as History from "../history";
+
+const labelBySubreddit = {
+    aww: "Aww",
+    cats: "Cats",
+    puppies: "Puppies",
+    cute: "Cute",
+    redpandas: "RedPandas",
+    aww_gifs: "AwwGifs",
+    foxes: "Foxes",
+    hardcoreaww: "HardcoreAww",
+    rabbits: "Rabbits",
+    CatGifs: "CatGifs",
+    CatsStandingUp: "CatsStandingUp",
+    dogpictures: "DogPictures",
+    pics: "Pics",
+    photography: "Photography",
+    earthporn: "Earth",
+    spaceporn: "Space",
+    gifs: "GIFs",
+    hdr: "HDR",
+    AbandonedPorn: "Abandoned",
+    FuturePorn: "Future",
+    FoodPorn: "Food",
+    AnimalPorn: "Animals",
+    MapPorn: "Maps",
+    ArtPorn: "Art",
+};
+
 export default {
+    data() {
+        return {
+            suggestions: labelBySubreddit,
+            history: new Set(),
+        };
+    },
+    mounted() {
+        this.history = History.load();
+    },
     methods: {
         select(subreddit) {
             this.$emit('select', subreddit);

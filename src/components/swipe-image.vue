@@ -1,6 +1,7 @@
 <template>
     <img :src="localSrc" :alt="localAlt"
          @click="onClick"
+         @load="$emit('load', $event)"
          @touchstart.prevent.stop="onStart"
          @mousedown.prevent.stop="onStart"
          @touchmove.stop="onMove"
@@ -93,7 +94,6 @@
                 this.$el.style.opacity = '1';
             },
             update () {
-                console.log('animating');
                 if (!this.animating) return;
 
                 requestAnimationFrame(this.update);

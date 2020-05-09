@@ -11,6 +11,7 @@
                 <div>
                     <swipe-image v-if="post.type === 'image'"
                                  @next="nextPost"
+                                 @load="$emit('load', $event)"
                                  :src="post.media" :alt="post.title"></swipe-image>
                     <iframe v-if="post.type === 'iframe'" :style="{width: windowWidth+'px', height: (windowWidth*0.7) + 'px'}" :src="post.media" frameborder="0"></iframe>
                     <video v-if="post.type === 'video'" :src="post.media" preload="auto" autoplay="autoplay" controls muted="muted" loop="loop" webkit-playsinline=""></video>

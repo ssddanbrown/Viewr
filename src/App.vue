@@ -1,7 +1,7 @@
 <template>
     <div id="app">
         <header>
-            <div class="logo" @click="loadSubreddit('', true)">Viewr</div>
+            <div class="logo" @click="loadSubreddit('', true)">VIEWR</div>
 
             <input v-model="subredditInput" v-on:keypress.enter="loadSubredditSubmit" class="input-text" placeholder="Enter Subreddit" type="text">
 
@@ -24,19 +24,25 @@
 
         </div>
 
-        <div id="container">
+        <div id="container" :class="{background: currentPost}">
 
             <h3 id="message"></h3>
 
             <div id="posts" v-show="subreddit">
-                <div draggable="false" v-for="post in posts" :key="post.data.id" @click="setCurrentPost(post)" class="post-item" :style="{backgroundImage: `url(${post.thumb})`}"></div>
+                <div v-for="post in posts"
+                    draggable="false"
+                    :key="post.data.id"
+                    @click="setCurrentPost(post)"
+                    class="post-item">
+                    <img :src="post.thumb" loading="lazy" width="160" height="160" :alt="post.title">
+                </div>
             </div>
 
             <div id="button-load" class="button" @click="nextPage" v-show="!isRequested && subreddit !== ''">Load More</div>
 
             <loading v-show="isRequested"></loading>
 
-            <suggestions v-show="!subreddit" @select="loadSubreddit($event)"></suggestions>
+            <suggestions v-if="!subreddit" @select="loadSubreddit($event)"></suggestions>
         </div>
 
         <display
@@ -45,6 +51,7 @@
         @next="changePost(1)"
         @prev="changePost(-1)"
         @close="hidePostDisplay"
+        @load="preloadNext"
         ></display>
 
     </div>
@@ -52,6 +59,7 @@
 
 <script>
     import Reddit from "./reddit-provider";
+    import * as History from "./history";
 
     import fancyRadio from "./components/fancy-radio.vue";
     import loading from "./components/loading.vue";
@@ -61,7 +69,7 @@
     export default {
     name: 'app',
     components: {fancyRadio, loading, suggestions, display},
-    data: function() {
+    data() {
         return {
           page: 0,
           subreddit: '',
@@ -74,7 +82,7 @@
         }
     },
 
-    mounted: function() {
+    mounted() {
         // Autoload subreddit if in hash
         if (window.location.hash) {
             let sub = window.location.hash.substring(1);
@@ -96,6 +104,8 @@
 
             if (this.isRequested && !force) return;
             if (subreddit === '') return;
+
+            History.add(subreddit);
 
             this.getPosts(subreddit).then(posts => {
                 this.posts = posts;
@@ -157,6 +167,13 @@
                 this.setCurrentPost(this.posts[newIndex]);
             }
         },
+        preloadNext() {
+            const nextPost = this.posts[this.posts.indexOf(this.currentPost) + 1];
+            if (nextPost && nextPost.type === 'image') {
+                const image = new Image();
+                image.src = nextPost.media;
+            }
+        }
     },
     watch: {
         time(newTime) {
