@@ -11,10 +11,10 @@
     "deploy": "vite build index.html --minify --base ./ && rsync -avz --exclude node_modules/ --exclude .cache/ --delete ./dist/ sandcat:/var/www/danb.me/viewr"
   },
   "dependencies": {
-    "vue": "^2"
+    "vue": "^3.3"
   },
   "devDependencies": {
-    "@vitejs/plugin-vue2": "^2.2.0",
+    "@vitejs/plugin-vue": "^4.3.3",
     "sass": "^1.66.1",
     "vite": "^4.4.9"
   },
