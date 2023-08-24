@@ -1,6 +1,5 @@
 <template>
     <div>
-
         <div v-if="history.size > 0">
             <h2>History</h2>
             <div class="suggestions">
@@ -33,16 +32,8 @@ const labelBySubreddit = {
     dogpictures: "DogPictures",
     pics: "Pics",
     photography: "Photography",
-    earthporn: "Earth",
-    spaceporn: "Space",
     gifs: "GIFs",
     hdr: "HDR",
-    AbandonedPorn: "Abandoned",
-    FuturePorn: "Future",
-    FoodPorn: "Food",
-    AnimalPorn: "Animals",
-    MapPorn: "Maps",
-    ArtPorn: "Art",
 };
 
 export default {

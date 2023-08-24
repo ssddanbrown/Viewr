@@ -5,20 +5,18 @@
   "author": "Dan Brown <hi@danb.me>",
   "private": true,
   "scripts": {
-    "serve": "php -S localhost:8080 -t ./dist",
-    "dev": "parcel serve index.html",
-    "build": "parcel build index.html --public-url ./",
-    "deploy": "parcel build index.html --public-url ./ && rsync -avz --exclude node_modules/ --exclude .cache/ --delete ./dist/ sandcat:/var/www/danb.me/viewr"
+    "serve": "vite preview",
+    "dev": "vite",
+    "build": "vite build --minify",
+    "deploy": "vite build index.html --minify --base ./ && rsync -avz --exclude node_modules/ --exclude .cache/ --delete ./dist/ sandcat:/var/www/danb.me/viewr"
   },
   "dependencies": {
-    "parcel-bundler": "^1.12.4",
-    "vue": "^2.6.11",
-    "vue-hot-reload-api": "^2.3.4"
+    "vue": "^2"
   },
   "devDependencies": {
-    "@vue/component-compiler-utils": "^3.1.2",
-    "sass": "^1.26.5",
-    "vue-template-compiler": "^2.6.11"
+    "@vitejs/plugin-vue2": "^2.2.0",
+    "sass": "^1.66.1",
+    "vite": "^4.4.9"
   },
   "browserslist": "last 1 Chrome version"
 }
