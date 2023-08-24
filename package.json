@@ -8,7 +8,7 @@
     "serve": "vite preview",
     "dev": "vite",
     "build": "vite build --minify",
-    "deploy": "vite build index.html --minify --base ./ && rsync -avz --exclude node_modules/ --exclude .cache/ --delete ./dist/ sandcat:/var/www/danb.me/viewr"
+    "deploy": "vite build --minify --base ./ && rsync -avz --delete ./dist/ sandcat:/var/www/danb.me/viewr"
   },
   "dependencies": {
     "vue": "^3.3"
